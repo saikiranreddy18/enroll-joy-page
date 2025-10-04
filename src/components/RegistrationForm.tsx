@@ -65,7 +65,7 @@ export default function RegistrationForm() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const webhookUrl = "https://hook.eu2.make.com/f7tgcxnauuxbgkv9hi57sknpse2qv3u6";
+    const webhookUrl = "https://sai830.app.n8n.cloud/webhook/7e7a11c4-37d7-4c3a-a183-a2adfddfe5f8";
     
     try {
       console.log("Sending registration data to webhook:", values);
