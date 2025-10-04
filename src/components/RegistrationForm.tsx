@@ -64,13 +64,47 @@ export default function RegistrationForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    setIsSubmitted(true);
-    toast({
-      title: "Registration Successful!",
-      description: "You'll receive a confirmation email shortly.",
-    });
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    const webhookUrl = "https://sai830.app.n8n.cloud/webhook-test/997388e3-4200-485e-a3bf-d6b5c0d3d6be";
+    
+    try {
+      console.log("Sending registration data to webhook:", values);
+      
+      const response = await fetch(webhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: values.name,
+          email: values.email,
+          phone: values.phone,
+          state: values.state,
+          study: values.study,
+          interests: values.interests,
+          timestamp: new Date().toISOString(),
+          source: "webinar_registration",
+        }),
+      });
+
+      if (response.ok) {
+        console.log("Registration sent successfully to webhook");
+        setIsSubmitted(true);
+        toast({
+          title: "Registration Successful!",
+          description: "You'll receive a confirmation email shortly.",
+        });
+      } else {
+        throw new Error("Webhook response not OK");
+      }
+    } catch (error) {
+      console.error("Error sending to webhook:", error);
+      toast({
+        title: "Registration Error",
+        description: "There was an issue submitting your registration. Please try again.",
+        variant: "destructive",
+      });
+    }
   }
 
   if (isSubmitted) {
