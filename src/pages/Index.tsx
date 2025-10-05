@@ -1,5 +1,6 @@
 import { Calendar, Clock, Users } from "lucide-react";
 import RegistrationForm from "@/components/RegistrationForm";
+import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import heroImage from "@/assets/webinar-hero.jpg";
 
 const Index = () => {
@@ -136,6 +137,13 @@ const Index = () => {
               ))}
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Analytics Section */}
+      <section className="py-16 md:py-24 bg-secondary/30">
+        <div className="container mx-auto px-4">
+          <AnalyticsDashboard />
         </div>
       </section>
     </div>
