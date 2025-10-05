@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, TrendingUp, Activity, BarChart3 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from "recharts";
 
 interface AnalyticsData {
   timestamp: string;
@@ -11,6 +12,8 @@ interface AnalyticsData {
   state: string;
   study: string;
   interests: string;
+  lastRemainder: string;
+  followUp: string;
 }
 
 export default function AnalyticsDashboard() {
@@ -62,6 +65,8 @@ export default function AnalyticsDashboard() {
         state: values[4] || "",
         study: values[5] || "",
         interests: values[6] || "",
+        lastRemainder: values[7] || "",
+        followUp: values[8] || "",
       };
     });
   };
@@ -90,6 +95,27 @@ export default function AnalyticsDashboard() {
     const topStudy = Object.entries(studyCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "N/A";
 
     setStats({ totalUsers, topState, topInterest, topStudy });
+  };
+
+  const getStateChartData = () => {
+    const stateCounts = data.reduce((acc, item) => {
+      if (item.state) {
+        acc[item.state] = (acc[item.state] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(stateCounts)
+      .map(([state, count]) => ({ state, registrations: count }))
+      .sort((a, b) => b.registrations - a.registrations);
+  };
+
+  const getActiveUsersData = () => {
+    return [{
+      name: "Users",
+      total: data.length,
+      active: data.filter(d => d.followUp).length
+    }];
   };
 
   if (loading) {
@@ -159,11 +185,54 @@ export default function AnalyticsDashboard() {
         </Card>
       </div>
 
+      {/* Charts */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* State-wise Registrations Area Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Registrations by State</CardTitle>
+            <CardDescription>Geographic distribution of registrations</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={getStateChartData()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="state" />
+                <YAxis />
+                <Tooltip />
+                <Area type="monotone" dataKey="registrations" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.6} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Total Users vs Active Users */}
+        <Card>
+          <CardHeader>
+            <CardTitle>User Engagement</CardTitle>
+            <CardDescription>Total users vs users with follow-up</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={getActiveUsersData()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="total" fill="hsl(var(--primary))" name="Total Users" />
+                <Bar dataKey="active" fill="hsl(var(--accent))" name="Active Users" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Recent Registrations Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Registrations</CardTitle>
-          <CardDescription>Latest users who registered for the webinar</CardDescription>
+          <CardTitle>User Details</CardTitle>
+          <CardDescription>Complete registration information</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -175,16 +244,18 @@ export default function AnalyticsDashboard() {
                   <th className="text-left py-3 px-4 font-medium">State</th>
                   <th className="text-left py-3 px-4 font-medium">Field of Study</th>
                   <th className="text-left py-3 px-4 font-medium">Interest</th>
+                  <th className="text-left py-3 px-4 font-medium">Last Remainder</th>
                 </tr>
               </thead>
               <tbody>
-                {data.slice(0, 10).map((row, index) => (
+                {data.map((row, index) => (
                   <tr key={index} className="border-b hover:bg-secondary/50">
                     <td className="py-3 px-4">{row.name}</td>
                     <td className="py-3 px-4 text-sm text-muted-foreground">{row.email}</td>
                     <td className="py-3 px-4">{row.state}</td>
                     <td className="py-3 px-4">{row.study}</td>
                     <td className="py-3 px-4">{row.interests}</td>
+                    <td className="py-3 px-4 text-sm">{row.lastRemainder}</td>
                   </tr>
                 ))}
               </tbody>

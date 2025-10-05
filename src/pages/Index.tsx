@@ -1,6 +1,7 @@
-import { Calendar, Clock, Users } from "lucide-react";
+import { Calendar, Clock, Users, BarChart3 } from "lucide-react";
+import { Link } from "react-router-dom";
 import RegistrationForm from "@/components/RegistrationForm";
-import AnalyticsDashboard from "@/components/AnalyticsDashboard";
+import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/webinar-hero.jpg";
 
 const Index = () => {
@@ -136,14 +137,17 @@ const Index = () => {
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Analytics Section */}
-      <section className="py-16 md:py-24 bg-secondary/30">
-        <div className="container mx-auto px-4">
-          <AnalyticsDashboard />
+            {/* Analytics CTA */}
+            <div className="mt-12 text-center">
+              <Link to="/analytics">
+                <Button size="lg" className="gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  View Registration Analytics
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
     </div>
