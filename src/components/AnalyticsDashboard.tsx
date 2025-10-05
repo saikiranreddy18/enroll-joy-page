@@ -53,20 +53,22 @@ export default function AnalyticsDashboard() {
 
   const parseCSV = (csv: string): AnalyticsData[] => {
     const lines = csv.split("\n");
-    const headers = lines[0].split(",").map(h => h.trim());
     
     return lines.slice(1).filter(line => line.trim()).map(line => {
-      const values = line.split(",").map(v => v.trim());
+      // Split by comma but handle quoted values
+      const values = line.split(",").map(v => v.trim().replace(/^"|"$/g, ''));
+      
+      // Columns: Name, Gmail, Ph no, State, Study, Intrests, last remainder, follow up
       return {
-        timestamp: values[0] || "",
-        name: values[1] || "",
-        email: values[2] || "",
-        phone: values[3] || "",
-        state: values[4] || "",
-        study: values[5] || "",
-        interests: values[6] || "",
-        lastRemainder: values[7] || "",
-        followUp: values[8] || "",
+        name: values[0] || "",
+        email: values[1] || "",
+        phone: values[2] || "",
+        state: values[3] || "",
+        study: values[4] || "",
+        interests: values[5] || "",
+        lastRemainder: values[6] || "",
+        followUp: values[7] || "",
+        timestamp: new Date().toISOString(),
       };
     });
   };
@@ -74,19 +76,38 @@ export default function AnalyticsDashboard() {
   const calculateStats = (data: AnalyticsData[]) => {
     const totalUsers = data.length;
     
-    // Count frequencies
+    const indianStatesMap: Record<string, string> = {
+      'ap': 'Andhra Pradesh', 'ar': 'Arunachal Pradesh', 'as': 'Assam', 'br': 'Bihar',
+      'cg': 'Chhattisgarh', 'ga': 'Goa', 'gj': 'Gujarat', 'hr': 'Haryana',
+      'hp': 'Himachal Pradesh', 'jh': 'Jharkhand', 'ka': 'Karnataka', 'kl': 'Kerala',
+      'mp': 'Madhya Pradesh', 'mh': 'Maharashtra', 'mn': 'Manipur', 'ml': 'Meghalaya',
+      'mz': 'Mizoram', 'nl': 'Nagaland', 'or': 'Odisha', 'pb': 'Punjab',
+      'rj': 'Rajasthan', 'sk': 'Sikkim', 'tn': 'Tamil Nadu', 'tg': 'Telangana',
+      'tr': 'Tripura', 'up': 'Uttar Pradesh', 'uk': 'Uttarakhand', 'wb': 'West Bengal',
+      'dl': 'Delhi', 'jk': 'Jammu & Kashmir', 'la': 'Ladakh'
+    };
+    
+    // Count frequencies with proper state names
     const stateCounts = data.reduce((acc, item) => {
-      acc[item.state] = (acc[item.state] || 0) + 1;
+      if (item.state) {
+        const stateKey = item.state.toLowerCase();
+        const stateName = indianStatesMap[stateKey] || item.state;
+        acc[stateName] = (acc[stateName] || 0) + 1;
+      }
       return acc;
     }, {} as Record<string, number>);
 
     const interestCounts = data.reduce((acc, item) => {
-      acc[item.interests] = (acc[item.interests] || 0) + 1;
+      if (item.interests) {
+        acc[item.interests] = (acc[item.interests] || 0) + 1;
+      }
       return acc;
     }, {} as Record<string, number>);
 
     const studyCounts = data.reduce((acc, item) => {
-      acc[item.study] = (acc[item.study] || 0) + 1;
+      if (item.study) {
+        acc[item.study] = (acc[item.study] || 0) + 1;
+      }
       return acc;
     }, {} as Record<string, number>);
 
@@ -97,10 +118,53 @@ export default function AnalyticsDashboard() {
     setStats({ totalUsers, topState, topInterest, topStudy });
   };
 
+  // Map of state codes to full names for Indian states
+  const indianStates: Record<string, string> = {
+    'ap': 'Andhra Pradesh',
+    'ar': 'Arunachal Pradesh',
+    'as': 'Assam',
+    'br': 'Bihar',
+    'cg': 'Chhattisgarh',
+    'ga': 'Goa',
+    'gj': 'Gujarat',
+    'hr': 'Haryana',
+    'hp': 'Himachal Pradesh',
+    'jh': 'Jharkhand',
+    'ka': 'Karnataka',
+    'kl': 'Kerala',
+    'mp': 'Madhya Pradesh',
+    'mh': 'Maharashtra',
+    'mn': 'Manipur',
+    'ml': 'Meghalaya',
+    'mz': 'Mizoram',
+    'nl': 'Nagaland',
+    'or': 'Odisha',
+    'pb': 'Punjab',
+    'rj': 'Rajasthan',
+    'sk': 'Sikkim',
+    'tn': 'Tamil Nadu',
+    'tg': 'Telangana',
+    'tr': 'Tripura',
+    'up': 'Uttar Pradesh',
+    'uk': 'Uttarakhand',
+    'wb': 'West Bengal',
+    'dl': 'Delhi',
+    'jk': 'Jammu & Kashmir',
+    'la': 'Ladakh',
+    'ld': 'Lakshadweep',
+    'py': 'Puducherry',
+    'an': 'Andaman & Nicobar',
+    'ch': 'Chandigarh',
+    'dh': 'Dadra & Nagar Haveli',
+    'dd': 'Daman & Diu',
+  };
+
   const getStateChartData = () => {
     const stateCounts = data.reduce((acc, item) => {
       if (item.state) {
-        acc[item.state] = (acc[item.state] || 0) + 1;
+        const stateKey = item.state.toLowerCase();
+        const stateName = indianStates[stateKey] || item.state;
+        acc[stateName] = (acc[stateName] || 0) + 1;
       }
       return acc;
     }, {} as Record<string, number>);
@@ -187,21 +251,21 @@ export default function AnalyticsDashboard() {
 
       {/* Charts */}
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* State-wise Registrations Area Chart */}
+        {/* State-wise Registrations Bar Chart */}
         <Card>
           <CardHeader>
-            <CardTitle>Registrations by State</CardTitle>
-            <CardDescription>Geographic distribution of registrations</CardDescription>
+            <CardTitle>Registrations by Indian State</CardTitle>
+            <CardDescription>State-wise distribution across India</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={getStateChartData()}>
+              <BarChart data={getStateChartData()} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="state" />
-                <YAxis />
+                <XAxis type="number" />
+                <YAxis dataKey="state" type="category" width={120} />
                 <Tooltip />
-                <Area type="monotone" dataKey="registrations" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.6} />
-              </AreaChart>
+                <Bar dataKey="registrations" fill="hsl(var(--primary))" />
+              </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
